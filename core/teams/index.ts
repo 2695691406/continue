@@ -20,6 +20,10 @@ export {
   filterToolsForExpert,
 } from "./expertExecutor";
 export { runSubAgent } from "./subAgentRunner";
+export {
+  dispatchParallel,
+  formatParallelResult,
+} from "./parallelDispatcher";
 export type {
   ExpertRole,
   ExpertInstance,
