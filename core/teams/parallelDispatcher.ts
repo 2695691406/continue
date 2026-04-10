@@ -10,9 +10,9 @@
  */
 
 import { ToolExtras } from "../..";
-import { getOrchestrator } from "../orchestrator";
-import { ExpertExecutionResult } from "../expertExecutor";
-import { runSubAgent, CallToolFn } from "../subAgentRunner";
+import { getOrchestrator } from "./orchestrator";
+import { ExpertExecutionResult } from "./expertExecutor";
+import { runSubAgent, CallToolFn } from "./subAgentRunner";
 
 /**
  * A dispatch request for a single expert agent.
