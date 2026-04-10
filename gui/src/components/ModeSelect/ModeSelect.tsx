@@ -45,6 +45,8 @@ export function ModeSelect() {
     } else if (mode === "plan") {
       dispatch(setMode("agent"));
     } else if (mode === "agent") {
+      dispatch(setMode("teams"));
+    } else if (mode === "teams") {
       // Skip background mode if local agent is selected
       dispatch(setMode(isLocalAgent ? "chat" : "background"));
     } else {
@@ -115,9 +117,11 @@ export function ModeSelect() {
               ? "Chat"
               : mode === "agent"
                 ? "Agent"
-                : mode === "background"
-                  ? "Background"
-                  : "Plan"}
+                : mode === "teams"
+                  ? "Teams"
+                  : mode === "background"
+                    ? "Background"
+                    : "Plan"}
           </span>
           <ChevronDownIcon
             className="h-2 w-2 flex-shrink-0"
@@ -183,6 +187,25 @@ export function ModeSelect() {
             {!isGoodAtAgentMode && notGreatAtAgent("Agent")}
             <CheckIcon
               className={`ml-auto h-3 w-3 ${mode === "agent" ? "" : "opacity-0"}`}
+            />
+          </ListboxOption>
+
+          <ListboxOption value="teams" className={"gap-1"}>
+            <div className="flex flex-row items-center gap-1.5">
+              <ModeIcon mode="teams" />
+              <span className="">Teams</span>
+              <ToolTip
+                style={{
+                  zIndex: 200001,
+                }}
+                content="Multi-agent expert team collaboration"
+              >
+                <InformationCircleIcon className="h-2.5 w-2.5 flex-shrink-0" />
+              </ToolTip>
+            </div>
+            {!isGoodAtAgentMode && notGreatAtAgent("Teams")}
+            <CheckIcon
+              className={`ml-auto h-3 w-3 ${mode === "teams" ? "" : "opacity-0"}`}
             />
           </ListboxOption>
 

@@ -492,7 +492,7 @@ export interface PromptLog {
   completion: string;
 }
 
-export type MessageModes = "chat" | "agent" | "plan" | "background";
+export type MessageModes = "chat" | "agent" | "plan" | "background" | "teams";
 
 export type ToolStatus =
   | "generating" // Tool call arguments are being streamed from the LLM
@@ -651,6 +651,7 @@ export interface LLMOptions {
   baseAgentSystemMessage?: string;
   basePlanSystemMessage?: string;
   baseChatSystemMessage?: string;
+  baseTeamsSystemMessage?: string;
   autocompleteOptions?: Partial<TabAutocompleteOptions>;
   contextLength?: number;
   maxStopWords?: number;
@@ -1247,6 +1248,7 @@ export interface ModelDescription {
   baseAgentSystemMessage?: string;
   basePlanSystemMessage?: string;
   baseChatSystemMessage?: string;
+  baseTeamsSystemMessage?: string;
   requestOptions?: RequestOptions;
   promptTemplates?: { [key: string]: string };
   cacheBehavior?: CacheBehavior;

@@ -3,6 +3,7 @@ import {
   RocketLaunchIcon,
   SparklesIcon,
   SwatchIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { MessageModes } from "core";
 
@@ -24,5 +25,7 @@ export function ModeIcon({
       return <ChatBubbleLeftIcon className={className} />;
     case "background":
       return <RocketLaunchIcon className={className} />;
+    case "teams":
+      return <UserGroupIcon className={className} />;
   }
 }

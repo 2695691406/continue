@@ -3,6 +3,7 @@ import {
   DEFAULT_AGENT_SYSTEM_MESSAGE,
   DEFAULT_CHAT_SYSTEM_MESSAGE,
   DEFAULT_PLAN_SYSTEM_MESSAGE,
+  DEFAULT_TEAMS_SYSTEM_MESSAGE,
 } from "core/llm/defaultSystemMessages";
 
 export const NO_TOOL_WARNING =
@@ -15,7 +16,9 @@ export function getBaseSystemMessage(
 ): string {
   let baseMessage: string;
 
-  if (messageMode === "agent") {
+  if (messageMode === "teams") {
+    baseMessage = model.baseTeamsSystemMessage ?? DEFAULT_TEAMS_SYSTEM_MESSAGE;
+  } else if (messageMode === "agent") {
     baseMessage = model.baseAgentSystemMessage ?? DEFAULT_AGENT_SYSTEM_MESSAGE;
   } else if (messageMode === "plan") {
     baseMessage = model.basePlanSystemMessage ?? DEFAULT_PLAN_SYSTEM_MESSAGE;
@@ -23,7 +26,7 @@ export function getBaseSystemMessage(
     baseMessage = model.baseChatSystemMessage ?? DEFAULT_CHAT_SYSTEM_MESSAGE;
   }
 
-  // Add no-tools warning for agent/plan modes when no tools are available
+  // Add no-tools warning for agent/plan/teams modes when no tools are available
   if (messageMode !== "chat" && (!activeTools || activeTools.length === 0)) {
     baseMessage += NO_TOOL_WARNING;
   }

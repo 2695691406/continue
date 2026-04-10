@@ -1,6 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { Tool } from "core";
 import { BUILT_IN_GROUP_NAME } from "core/tools/builtIn";
+import { TEAMS_TOOL_GROUP_NAME } from "core/teams/tools";
 import { DEFAULT_TOOL_SETTING } from "../slices/uiSlice";
 import { RootState } from "../store";
 
@@ -28,6 +29,11 @@ export const selectActiveTools = createSelector(
         return enabledTools.filter(
           (t) => t.group !== BUILT_IN_GROUP_NAME || t.readonly,
         );
+      }
+      if (mode === "teams") {
+        // In teams mode, include all enabled tools plus teams-specific tools
+        // Teams tools (TaskCreate, Agent, etc.) are always available
+        return enabledTools;
       }
       return enabledTools;
     }
