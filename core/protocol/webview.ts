@@ -44,4 +44,23 @@ export type ToWebviewFromIdeOrCoreProtocol = {
   sessionUpdate: [{ sessionInfo: ControlPlaneSessionInfo | undefined }, void];
   toolCallPartialOutput: [{ toolCallId: string; contextItems: any[] }, void];
   freeTrialExceeded: [undefined, void];
+  /** Teams mode: update expert status, task board, and messages */
+  teamsStateUpdate: [
+    {
+      experts: Array<{
+        id: string;
+        roleName: string;
+        status: "idle" | "working" | "completed" | "failed";
+        currentTaskSubject?: string;
+      }>;
+      tasks: Array<{
+        id: string;
+        subject: string;
+        status: string;
+        assignee?: string;
+      }>;
+      isOrchestratorRunning: boolean;
+    },
+    void,
+  ];
 };

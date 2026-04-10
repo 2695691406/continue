@@ -36,6 +36,7 @@ import {
   cancelToolCall,
   ChatHistoryItemWithMessageId,
   newSession,
+  updateTeamsState,
   updateToolCallOutput,
 } from "../../redux/slices/sessionSlice";
 import { streamEditThunk } from "../../redux/thunks/edit";
@@ -309,6 +310,15 @@ export function Chat() {
           contextItems: data.contextItems,
         }),
       );
+    },
+    [dispatch],
+  );
+
+  // Handle teams state updates from the orchestrator
+  useWebviewListener(
+    "teamsStateUpdate",
+    async (data) => {
+      dispatch(updateTeamsState(data));
     },
     [dispatch],
   );
