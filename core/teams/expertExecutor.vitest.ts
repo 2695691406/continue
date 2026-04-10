@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   buildExpertDelegationPrompt,
   filterToolsForExpert,
+  ExpertExecutor,
 } from "./expertExecutor";
 import { ExpertRole, DelegationContract } from "./types";
 import { Tool } from "..";
@@ -156,5 +157,63 @@ describe("filterToolsForExpert", () => {
 
     const filtered = filterToolsForExpert(mockTools, role);
     expect(filtered).toHaveLength(0);
+  });
+});
+
+describe("ExpertExecutor class", () => {
+  const mockRole: ExpertRole = {
+    name: "coding-expert",
+    description: "Full-stack coding expert",
+    tools: ["read_file", "search_replace"],
+    systemPrompt: "You are a coding expert.",
+    readonly: false,
+  };
+
+  const mockContract: DelegationContract = {
+    taskObjective: "Implement login feature",
+    context: "Using JWT",
+  };
+
+  const mockTools: Tool[] = [
+    {
+      type: "function",
+      displayTitle: "Read File",
+      readonly: true,
+      group: "Built-In",
+      function: { name: "read_file", description: "Read a file" },
+    },
+    {
+      type: "function",
+      displayTitle: "Edit File",
+      readonly: false,
+      group: "Built-In",
+      function: { name: "edit_existing_file", description: "Edit a file" },
+    },
+  ];
+
+  test("constructs system prompt combining role + contract + templates", () => {
+    const executor = new ExpertExecutor(mockRole, mockContract, mockTools);
+    const prompt = executor.getSystemPrompt();
+    expect(prompt).toContain("You are a coding expert.");
+    expect(prompt).toContain("Implement login feature");
+    expect(prompt).toContain("<delegation_contract>");
+    expect(prompt).toContain("<communication>");
+    expect(prompt).toContain("<expert_mode>");
+  });
+
+  test("filters tools based on role", () => {
+    const executor = new ExpertExecutor(mockRole, mockContract, mockTools);
+    const tools = executor.getTools();
+    // read_file is allowed, edit_existing_file maps from search_replace
+    expect(tools.map((t) => t.function.name)).toContain("read_file");
+    expect(tools.map((t) => t.function.name)).toContain("edit_existing_file");
+  });
+
+  test("returns role and contract", () => {
+    const executor = new ExpertExecutor(mockRole, mockContract, mockTools);
+    expect(executor.getRole().name).toBe("coding-expert");
+    expect(executor.getContract().taskObjective).toBe(
+      "Implement login feature",
+    );
   });
 });

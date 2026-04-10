@@ -460,7 +460,7 @@ agent-tems 设计的本质是将 **"一个全能 AI 助手"** 转变为 **"一�
 
 ---
 
-## 状态: ✅ MVP 已实施（阶段 1-5）
+## 状态: ✅ MVP+ 已实施（阶段 1-9）
 
 ### 已完成
 
@@ -469,11 +469,14 @@ agent-tems 设计的本质是将 **"一个全能 AI 助手"** 转变为 **"一�
 - ✅ **阶段 3**：任务管理系统 — TaskManager CRUD + 6 个 Leader 编排工具
 - ✅ **阶段 4**：编排引擎 — TeamsOrchestrator、ExpertExecutor、工具实现、callTool 集成
 - ✅ **阶段 5**：GUI 集成 — Redux teamsState、stream 流适配
+- ✅ **阶段 6**：新增专家角色 — verify-expert、code-review-expert（共 7 个角色）
+- ✅ **阶段 7**：单元测试 — 60 个测试覆盖 taskManager、promptLoader、orchestrator、expertExecutor
+- ✅ **阶段 8**：GUI 组件 — ExpertPanel.tsx（专家状态面板）、TaskBoard.tsx（任务看板）
+- ✅ **阶段 9**：通信协议 — teamsStateUpdate 消息、useWebviewListener 集成
 
 ### 待实现（后续迭代）
 
-- ⏳ **阶段 6**：通信协议扩展（如需独立 Expert 面板显示）
-- ⏳ **阶段 7**：配置持久化（用户自定义专家、YAML 配置）
-- ⏳ **阶段 8**：完整测试覆盖
-- ⏳ Expert 面板 GUI 组件（ExpertPanel.tsx, TaskBoard.tsx）
+- ⏳ 配置持久化（用户自定义专家、YAML 配置）
 - ⏳ 真正的 Sub-Agent LLM 执行循环（当前为 delegation receipt 模式）
+- ⏳ 并行调度支持（Promise.allSettled 多专家并行）
+- ⏳ Teams Session 持久化（任务看板状态在会话中持久化）
