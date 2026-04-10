@@ -34,6 +34,8 @@ export class ExpertRegistry {
       "research-expert.md",
       "backend-dev.md",
       "researcher.md",
+      "verify-expert.md",
+      "code-review-expert.md",
     ];
 
     for (const filename of builtInFiles) {
