@@ -27,15 +27,19 @@ export const selectActiveTools = createSelector(
       });
       if (mode === "plan") {
         return enabledTools.filter(
-          (t) => t.group !== BUILT_IN_GROUP_NAME || t.readonly,
+          (t) =>
+            (t.group !== BUILT_IN_GROUP_NAME || t.readonly) &&
+            t.group !== TEAMS_TOOL_GROUP_NAME,
         );
       }
       if (mode === "teams") {
-        // In teams mode, include all enabled tools plus teams-specific tools
-        // Teams tools (TaskCreate, Agent, etc.) are always available
+        // In teams mode, include all enabled tools (built-in + teams)
         return enabledTools;
       }
-      return enabledTools;
+      // In agent/background mode, exclude teams-specific tools
+      return enabledTools.filter(
+        (t) => t.group !== TEAMS_TOOL_GROUP_NAME,
+      );
     }
   },
 );

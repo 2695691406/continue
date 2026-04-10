@@ -29,7 +29,7 @@ import { PolicySingleton } from "../../control-plane/PolicySingleton";
 import { TeamAnalytics } from "../../control-plane/TeamAnalytics.js";
 import ContinueProxy from "../../llm/llms/stubs/ContinueProxy";
 import { initSlashCommand } from "../../promptFiles/initPrompt";
-import { getConfigDependentToolDefinitions } from "../../tools";
+import { getConfigDependentToolDefinitions, getTeamsTools } from "../../tools";
 import { encodeMCPToolUri } from "../../tools/callTool";
 import { getMCPToolName } from "../../tools/mcpToolName";
 import { GlobalContext } from "../../util/GlobalContext";
@@ -326,6 +326,9 @@ export default async function doLoadConfig(options: {
       ide,
     })),
   );
+
+  // Add teams mode tools (TaskCreate, Agent, SendMessage, etc.)
+  newConfig.tools.push(...getTeamsTools());
 
   // Detect duplicate tool names
   const counts: Record<string, number> = {};

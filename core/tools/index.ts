@@ -1,5 +1,6 @@
 import { ConfigDependentToolParams, Tool } from "..";
 import { isRecommendedAgentModel } from "../llm/toolSupport";
+import { getTeamsToolDefinitions } from "../teams/tools";
 import * as toolDefinitions from "./definitions";
 
 // I'm writing these as functions because we've messed up 3 TIMES by pushing to const, causing duplicate tool definitions on subsequent config loads.
@@ -14,6 +15,12 @@ export const getBaseToolDefinitions = () => [
   toolDefinitions.createRuleBlock,
   toolDefinitions.fetchUrlContentTool,
 ];
+
+/**
+ * Get teams-mode tool definitions (TaskCreate, Agent, SendMessage, etc.)
+ * These are included in the tool set only when teams mode is active.
+ */
+export const getTeamsTools = (): Tool[] => getTeamsToolDefinitions();
 
 export const getConfigDependentToolDefinitions = async (
   params: ConfigDependentToolParams,
