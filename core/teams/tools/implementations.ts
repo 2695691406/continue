@@ -129,18 +129,15 @@ export async function teamsTaskGetImpl(
 /**
  * Implementation: teams_dispatch_agent
  *
- * This is the CORE implementation that enables the Leader to delegate work
- * to expert agents. In this MVP implementation, it creates a task entry
- * and returns a structured delegation receipt. The actual sub-agent execution
- * will be handled by the orchestrator in a future phase.
+ * MVP STUB: Creates a task board entry and returns a delegation receipt.
+ * The actual sub-agent LLM execution loop is a future enhancement
+ * where the expert executor will create an independent LLM session
+ * with the expert's system prompt and restricted tool set.
  *
- * For now, this implementation:
- * 1. Validates the requested agent role exists
+ * Current behavior:
+ * 1. Validates the requested agent role
  * 2. Creates/updates a task board entry
- * 3. Returns a delegation receipt to the Leader
- *
- * The full sub-agent LLM execution loop will be implemented in Phase 4
- * of the orchestrator when it processes Agent tool calls.
+ * 3. Returns a delegation receipt
  */
 export async function teamsAgentImpl(
   args: any,
@@ -169,8 +166,7 @@ export async function teamsAgentImpl(
     }
   }
 
-  // Return delegation receipt
-  // In the full implementation, this would trigger the expert executor
+  // Return delegation receipt (MVP stub - future: trigger expert executor LLM session)
   return [
     {
       name: `Agent Dispatched: ${agentName}`,

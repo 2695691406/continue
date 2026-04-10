@@ -39,11 +39,9 @@ export class ExpertRegistry {
     for (const filename of builtInFiles) {
       try {
         const filePath = path.join(this.promptsDir, filename);
-        if (fs.existsSync(filePath)) {
-          const content = fs.readFileSync(filePath, "utf-8");
-          const role = loadExpertRole(content);
-          this.roles.set(role.name, role);
-        }
+        const content = fs.readFileSync(filePath, "utf-8");
+        const role = loadExpertRole(content);
+        this.roles.set(role.name, role);
       } catch (e) {
         console.warn(`Failed to load expert prompt: ${filename}`, e);
       }
