@@ -1,3 +1,4 @@
+import { AliyunCodingPlan } from "./providers/aliyunCodingPlan.js";
 import { Anthropic } from "./providers/anthropic.js";
 import { Azure } from "./providers/azure.js";
 import { Bedrock } from "./providers/bedrock.js";
@@ -15,6 +16,7 @@ import { zAI } from "./providers/zai.js";
 import { LlmInfoWithProvider, ModelProvider, UseCase } from "./types.js";
 
 export const allModelProviders: ModelProvider[] = [
+  AliyunCodingPlan,
   OpenAi,
   Gemini,
   Anthropic,
