@@ -34,6 +34,9 @@ const MAX_TOOL_ROUNDS = 25;
 /** Maximum accumulated output length (characters) before truncation */
 const MAX_OUTPUT_LENGTH = 50000;
 
+/** Default timeout for a single expert session (5 minutes) */
+const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+
 /**
  * Type for the callTool function, injected to avoid circular dependencies.
  * This matches the signature of core/tools/callTool.ts callTool().
@@ -67,6 +70,8 @@ export async function runSubAgent(params: {
   extras: ToolExtras;
   callToolFn: CallToolFn;
   abortSignal?: AbortSignal;
+  /** Timeout in ms. Defaults to 5 minutes. Set 0 to disable. */
+  timeoutMs?: number;
 }): Promise<ExpertExecutionResult> {
   const {
     roleName,
@@ -76,6 +81,7 @@ export async function runSubAgent(params: {
     extras,
     callToolFn,
     abortSignal,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
   } = params;
 
   const registry = getExpertRegistry();
@@ -124,7 +130,21 @@ export async function runSubAgent(params: {
   ];
 
   const llm = extras.llm;
-  const signal = abortSignal || new AbortController().signal;
+
+  // Chain abort signals: timeout + user-provided
+  const timeoutController = new AbortController();
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+  if (timeoutMs > 0) {
+    timeoutHandle = setTimeout(() => timeoutController.abort(), timeoutMs);
+  }
+  if (abortSignal) {
+    if (abortSignal.aborted) {
+      timeoutController.abort();
+    } else {
+      abortSignal.addEventListener("abort", () => timeoutController.abort());
+    }
+  }
+  const signal = timeoutController.signal;
 
   // Track execution metrics
   let toolCallCount = 0;
@@ -144,7 +164,10 @@ export async function runSubAgent(params: {
     // Tool-call loop: send messages → collect response → handle tool calls → repeat
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       if (signal.aborted) {
-        errors.push("Execution aborted by user");
+        const reason = timeoutMs > 0 && !abortSignal?.aborted
+          ? `Execution timed out after ${Math.round(timeoutMs / 1000)}s`
+          : "Execution aborted by user";
+        errors.push(reason);
         break;
       }
 
@@ -303,6 +326,8 @@ export async function runSubAgent(params: {
     const finalOutput = outputParts.join("\n\n").slice(0, MAX_OUTPUT_LENGTH);
     orchestrator.completeExpert(expertInstance.id, finalOutput);
 
+    if (timeoutHandle) clearTimeout(timeoutHandle);
+
     return {
       success: errors.length === 0,
       output: finalOutput || "Expert completed without producing output.",
@@ -310,6 +335,8 @@ export async function runSubAgent(params: {
       errors: errors.length > 0 ? errors : undefined,
     };
   } catch (e: any) {
+    if (timeoutHandle) clearTimeout(timeoutHandle);
+
     const errorMsg = e.message || String(e);
     orchestrator.failExpert(expertInstance.id, errorMsg);
     return {
