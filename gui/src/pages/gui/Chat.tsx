@@ -60,7 +60,7 @@ import { getLocalStorage, setLocalStorage } from "../../util/localStorage";
 import { EmptyChatBody } from "./EmptyChatBody";
 import { ExploreDialogWatcher } from "./ExploreDialogWatcher";
 import { useAutoScroll } from "./useAutoScroll";
-import { ExpertPanel, TaskBoard } from "../../components/Teams";
+import { ExpertPanel, SubAgentActivity, TaskBoard } from "../../components/Teams";
 
 // Helper function to find the index of the latest conversation summary
 function findLatestSummaryIndex(history: ChatHistoryItem[]): number {
@@ -483,6 +483,7 @@ export function Chat() {
         {mode === "teams" && (
           <div className="px-2">
             <ExpertPanel />
+            <SubAgentActivity />
             <TaskBoard />
           </div>
         )}
