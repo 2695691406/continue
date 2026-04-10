@@ -227,4 +227,111 @@ describe("TeamsOrchestrator", () => {
       expect(events).toHaveLength(1); // no new events
     });
   });
+
+  describe("addExpertStep", () => {
+    test("adds a tool_call step to an expert", () => {
+      const expert = orchestrator.dispatchExpert("coding-expert", "Task");
+      orchestrator.addExpertStep(expert.id, {
+        type: "tool_call",
+        timestamp: Date.now(),
+        toolName: "read_file",
+        toolArgs: '{"filepath":"src/main.ts"}',
+        toolResult: "File content...",
+        toolSuccess: true,
+      });
+
+      const updated = orchestrator.getExpert(expert.id);
+      expect(updated?.steps).toHaveLength(1);
+      expect(updated?.steps?.[0].type).toBe("tool_call");
+      expect(updated?.steps?.[0].toolName).toBe("read_file");
+      expect(updated?.steps?.[0].toolSuccess).toBe(true);
+    });
+
+    test("adds a text step to an expert", () => {
+      const expert = orchestrator.dispatchExpert("coding-expert", "Task");
+      orchestrator.addExpertStep(expert.id, {
+        type: "text",
+        timestamp: Date.now(),
+        content: "Analysis complete. The issue is in the auth module.",
+      });
+
+      const updated = orchestrator.getExpert(expert.id);
+      expect(updated?.steps).toHaveLength(1);
+      expect(updated?.steps?.[0].type).toBe("text");
+      expect(updated?.steps?.[0].content).toContain("auth module");
+    });
+
+    test("accumulates multiple steps in order", () => {
+      const expert = orchestrator.dispatchExpert("coding-expert", "Task");
+      orchestrator.addExpertStep(expert.id, {
+        type: "tool_call",
+        timestamp: 1000,
+        toolName: "read_file",
+        toolSuccess: true,
+      });
+      orchestrator.addExpertStep(expert.id, {
+        type: "tool_call",
+        timestamp: 2000,
+        toolName: "edit_existing_file",
+        toolSuccess: true,
+      });
+      orchestrator.addExpertStep(expert.id, {
+        type: "text",
+        timestamp: 3000,
+        content: "Done",
+      });
+
+      const updated = orchestrator.getExpert(expert.id);
+      expect(updated?.steps).toHaveLength(3);
+      expect(updated?.steps?.[0].toolName).toBe("read_file");
+      expect(updated?.steps?.[1].toolName).toBe("edit_existing_file");
+      expect(updated?.steps?.[2].type).toBe("text");
+    });
+
+    test("emits expert_step event", () => {
+      const events: OrchestratorEvent[] = [];
+      orchestrator.onEvent((e) => events.push(e));
+
+      const expert = orchestrator.dispatchExpert("coding-expert", "Task");
+      orchestrator.addExpertStep(expert.id, {
+        type: "tool_call",
+        timestamp: Date.now(),
+        toolName: "read_file",
+        toolSuccess: true,
+      });
+
+      const stepEvents = events.filter((e) => e.type === "expert_step");
+      expect(stepEvents).toHaveLength(1);
+      expect(stepEvents[0].data.expertId).toBe(expert.id);
+      expect(stepEvents[0].data.step.toolName).toBe("read_file");
+    });
+
+    test("silently ignores unknown expert ID", () => {
+      // Should not throw
+      orchestrator.addExpertStep("non-existent-id", {
+        type: "text",
+        timestamp: Date.now(),
+        content: "test",
+      });
+    });
+
+    test("steps are included in getState", () => {
+      const expert = orchestrator.dispatchExpert("coding-expert", "Task");
+      orchestrator.addExpertStep(expert.id, {
+        type: "tool_call",
+        timestamp: Date.now(),
+        toolName: "grep_search",
+        toolSuccess: true,
+      });
+
+      const state = orchestrator.getState();
+      expect(state.experts[0].steps).toHaveLength(1);
+      expect(state.experts[0].steps?.[0].toolName).toBe("grep_search");
+    });
+
+    test("dispatched expert starts with empty steps array", () => {
+      const expert = orchestrator.dispatchExpert("coding-expert", "Task");
+      expect(expert.steps).toEqual([]);
+    });
+  });
 });

@@ -186,4 +186,53 @@ describe("TeamsStateBroadcaster", () => {
       sendFn.mock.calls[sendFn.mock.calls.length - 1][0];
     expect(payload.tasks[0].assignee).toBe("research-expert");
   });
+
+  test("broadcasts when expert step is added", () => {
+    broadcaster.start();
+    const expert = orchestrator.dispatchExpert("coding-expert", "Fix bug");
+    sendFn.mockClear();
+
+    orchestrator.addExpertStep(expert.id, {
+      type: "tool_call",
+      timestamp: Date.now(),
+      toolName: "read_file",
+      toolSuccess: true,
+    });
+
+    expect(sendFn).toHaveBeenCalledTimes(1);
+    const payload: TeamsStateUpdatePayload = sendFn.mock.calls[0][0];
+    expect(payload.experts[0].steps).toHaveLength(1);
+    expect(payload.experts[0].steps?.[0].toolName).toBe("read_file");
+  });
+
+  test("payload includes multiple steps in order", () => {
+    broadcaster.start();
+    const expert = orchestrator.dispatchExpert("coding-expert", "Fix bug");
+    sendFn.mockClear();
+
+    orchestrator.addExpertStep(expert.id, {
+      type: "tool_call",
+      timestamp: 1000,
+      toolName: "read_file",
+      toolSuccess: true,
+    });
+    orchestrator.addExpertStep(expert.id, {
+      type: "tool_call",
+      timestamp: 2000,
+      toolName: "edit_existing_file",
+      toolSuccess: true,
+    });
+    orchestrator.addExpertStep(expert.id, {
+      type: "text",
+      timestamp: 3000,
+      content: "Done fixing the bug",
+    });
+
+    const payload: TeamsStateUpdatePayload =
+      sendFn.mock.calls[sendFn.mock.calls.length - 1][0];
+    expect(payload.experts[0].steps).toHaveLength(3);
+    expect(payload.experts[0].steps?.[0].toolName).toBe("read_file");
+    expect(payload.experts[0].steps?.[1].toolName).toBe("edit_existing_file");
+    expect(payload.experts[0].steps?.[2].type).toBe("text");
+  });
 });
