@@ -3335,7 +3335,7 @@ export const models: { [key: string]: ModelPackage } = {
     params: {
       title: "Qwen3 Coder Plus",
       model: "qwen3-coder-plus",
-      contextLength: 262_000,
+      contextLength: 262_144,
     },
     icon: "qwen.png",
     providerOptions: ["aliyun-coding-plan"],
@@ -3349,7 +3349,7 @@ export const models: { [key: string]: ModelPackage } = {
     params: {
       title: "Qwen3 Coder Next",
       model: "qwen3-coder-next",
-      contextLength: 262_000,
+      contextLength: 262_144,
     },
     icon: "qwen.png",
     providerOptions: ["aliyun-coding-plan"],
@@ -3363,7 +3363,7 @@ export const models: { [key: string]: ModelPackage } = {
     params: {
       title: "Qwen3.5 Plus",
       model: "qwen3.5-plus",
-      contextLength: 131_000,
+      contextLength: 131_072,
     },
     icon: "qwen.png",
     providerOptions: ["aliyun-coding-plan"],
@@ -3377,7 +3377,7 @@ export const models: { [key: string]: ModelPackage } = {
     params: {
       title: "Kimi K2.5",
       model: "kimi-k2.5",
-      contextLength: 131_000,
+      contextLength: 131_072,
     },
     icon: "moonshot.png",
     providerOptions: ["aliyun-coding-plan"],
@@ -3385,13 +3385,12 @@ export const models: { [key: string]: ModelPackage } = {
   },
   aliyunGlm5: {
     title: "GLM-5",
-    description:
-      "Zhipu AI's GLM-5 flagship model, available via Coding Plan.",
+    description: "Zhipu AI's GLM-5 flagship model, available via Coding Plan.",
     refUrl: "https://help.aliyun.com/zh/model-studio/coding-plan",
     params: {
       title: "GLM-5",
       model: "glm-5",
-      contextLength: 131_000,
+      contextLength: 131_072,
     },
     icon: "zai.svg",
     providerOptions: ["aliyun-coding-plan"],
