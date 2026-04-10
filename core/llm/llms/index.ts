@@ -9,6 +9,7 @@ import {
 } from "../..";
 import { renderTemplatedString } from "../../util/handlebars/renderTemplatedString";
 import { BaseLLM } from "../index";
+import AliyunCodingPlan from "./AliyunCodingPlan";
 import Anthropic from "./Anthropic";
 import Asksage from "./Asksage";
 import Azure from "./Azure";
@@ -72,6 +73,7 @@ import WatsonX from "./WatsonX";
 import xAI from "./xAI";
 import zAI from "./zAI";
 export const LLMClasses = [
+  AliyunCodingPlan,
   Anthropic,
   Cohere,
   CometAPI,
