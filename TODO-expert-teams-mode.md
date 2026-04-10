@@ -477,6 +477,12 @@ agent-tems 设计的本质是将 **"一个全能 AI 助手"** 转变为 **"一�
 - ✅ **阶段 11**：并行调度支持 — parallelDispatcher.ts Promise.allSettled 多专家并行
 - ✅ **阶段 12**：状态广播器 — stateBroadcaster.ts 编排器事件→GUI teamsStateUpdate
 - ✅ **阶段 13**：新增测试 — 共 80 个测试（6 个测试文件），覆盖 subAgentRunner + stateBroadcaster
+- ✅ **阶段 14**：Sub-Agent 执行可视化 — SubAgentActivity.tsx 可折叠执行详情查看器
+  - SubAgentStep 类型定义、协议扩展、Redux 状态扩展
+  - subAgentRunner 执行过程中实时广播 tool_call/text 步骤
+  - SubAgentActivity.tsx：每个专家可折叠面板，默认收起，点击展开执行步骤
+  - 工具调用步骤显示名称+成功/失败图标，点击查看参数和结果
+  - 共 89 个测试（新增 9 个：addExpertStep + step broadcasting）
 
 ### 待实现（后续迭代）
 
