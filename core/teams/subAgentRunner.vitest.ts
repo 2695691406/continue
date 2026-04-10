@@ -44,7 +44,7 @@ vi.mock("./expertRegistry", () => {
 });
 
 // Now import the module under test
-import { runSubAgent, CallToolFn } from "./subAgentRunner";
+import { runSubAgent, runSubAgentWithRetry, CallToolFn } from "./subAgentRunner";
 
 // Create mock ToolExtras
 function createMockExtras() {
@@ -301,5 +301,125 @@ describe("runSubAgent", () => {
 
     expect(result.errors).toBeDefined();
     expect(result.errors).toContain("Execution aborted by user");
+  });
+});
+
+describe("runSubAgentWithRetry", () => {
+  test("succeeds on first attempt without retries", async () => {
+    const extras = createMockExtras();
+    const callToolFn = createMockCallTool();
+
+    extras.llm.streamChat = vi.fn(async function* () {
+      yield {
+        role: "assistant" as const,
+        content: "Task complete.",
+      };
+    });
+
+    const result = await runSubAgentWithRetry({
+      roleName: "research-expert",
+      taskDescription: "Analyze code",
+      extras,
+      callToolFn,
+      maxRetries: 2,
+    });
+
+    expect(result.success).toBe(true);
+    // streamChat called once = 1 attempt
+    expect(extras.llm.streamChat).toHaveBeenCalledTimes(1);
+  });
+
+  test("retries on failure and succeeds on second attempt", async () => {
+    const extras = createMockExtras();
+    const callToolFn = createMockCallTool();
+
+    let callCount = 0;
+    extras.llm.streamChat = vi.fn(async function* () {
+      callCount++;
+      if (callCount === 1) {
+        // First attempt fails (throw to trigger failure)
+        throw new Error("LLM connection timeout");
+      }
+      yield {
+        role: "assistant" as const,
+        content: "Task complete on retry.",
+      };
+    });
+
+    const result = await runSubAgentWithRetry({
+      roleName: "research-expert",
+      taskDescription: "Analyze code",
+      extras,
+      callToolFn,
+      maxRetries: 1,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.output).toContain("Task complete on retry");
+  });
+
+  test("returns last failure when all retries exhausted", async () => {
+    const extras = createMockExtras();
+    const callToolFn = createMockCallTool();
+
+    extras.llm.streamChat = vi.fn(async function* () {
+      throw new Error("Persistent failure");
+    });
+
+    const result = await runSubAgentWithRetry({
+      roleName: "research-expert",
+      taskDescription: "Failing task",
+      extras,
+      callToolFn,
+      maxRetries: 2,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.errors).toBeDefined();
+    // Should have been called 3 times (1 initial + 2 retries)
+    expect(extras.llm.streamChat).toHaveBeenCalledTimes(3);
+  });
+
+  test("does not retry when abort signal is set", async () => {
+    const extras = createMockExtras();
+    const callToolFn = createMockCallTool();
+    const abortController = new AbortController();
+    abortController.abort();
+
+    extras.llm.streamChat = vi.fn(async function* () {
+      yield { role: "assistant" as const, content: "" };
+    });
+
+    const result = await runSubAgentWithRetry({
+      roleName: "research-expert",
+      taskDescription: "Task",
+      extras,
+      callToolFn,
+      abortSignal: abortController.signal,
+      maxRetries: 3,
+    });
+
+    // Should not attempt any calls since abort was set before first attempt
+    expect(extras.llm.streamChat).toHaveBeenCalledTimes(0);
+  });
+
+  test("defaults to 0 retries (same as runSubAgent)", async () => {
+    const extras = createMockExtras();
+    const callToolFn = createMockCallTool();
+
+    extras.llm.streamChat = vi.fn(async function* () {
+      throw new Error("Fail");
+    });
+
+    const result = await runSubAgentWithRetry({
+      roleName: "research-expert",
+      taskDescription: "Task",
+      extras,
+      callToolFn,
+      // No maxRetries specified
+    });
+
+    expect(result.success).toBe(false);
+    expect(extras.llm.streamChat).toHaveBeenCalledTimes(1);
   });
 });

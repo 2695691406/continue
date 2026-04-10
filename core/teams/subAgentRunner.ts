@@ -37,6 +37,9 @@ const MAX_OUTPUT_LENGTH = 50000;
 /** Default timeout for a single expert session (5 minutes) */
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 
+/** Default max retry attempts for a failed expert */
+const DEFAULT_MAX_RETRIES = 0;
+
 /**
  * Type for the callTool function, injected to avoid circular dependencies.
  * This matches the signature of core/tools/callTool.ts callTool().
@@ -434,4 +437,54 @@ function buildExpertUserMessage(
     message += `\n\n## Additional Context\n\n${context}`;
   }
   return message;
+}
+
+/**
+ * Run a sub-agent with automatic retry on failure.
+ *
+ * Wraps `runSubAgent` with configurable retry logic. Each retry
+ * creates a fresh LLM session. User abort signals are respected
+ * between retries (no retry after abort).
+ *
+ * @param maxRetries - Maximum retry attempts (0 = no retries, default)
+ */
+export async function runSubAgentWithRetry(
+  params: Parameters<typeof runSubAgent>[0] & {
+    maxRetries?: number;
+  },
+): Promise<ExpertExecutionResult> {
+  const { maxRetries = DEFAULT_MAX_RETRIES, ...subAgentParams } = params;
+
+  let lastResult: ExpertExecutionResult | undefined;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    // Don't retry if aborted
+    if (params.abortSignal?.aborted) {
+      break;
+    }
+
+    lastResult = await runSubAgent(subAgentParams);
+
+    if (lastResult.success) {
+      return lastResult;
+    }
+
+    // Don't retry on abort
+    if (lastResult.errors?.some((e) => e.includes("abort"))) {
+      break;
+    }
+
+    if (attempt < maxRetries) {
+      console.log(
+        `[SubAgentRunner] Expert ${params.roleName} failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying...`,
+      );
+    }
+  }
+
+  return lastResult ?? {
+    success: false,
+    output: `Expert ${params.roleName} aborted before execution`,
+    toolCallCount: 0,
+    errors: ["Execution aborted before first attempt"],
+  };
 }
