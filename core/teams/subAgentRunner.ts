@@ -172,6 +172,13 @@ export async function runSubAgent(params: {
             : "";
         if (finalText) {
           outputParts.push(finalText);
+
+          // Emit a text step for the final response
+          orchestrator.addExpertStep(expertInstance.id, {
+            type: "text",
+            timestamp: Date.now(),
+            content: finalText.slice(0, 1000),
+          });
         }
         break;
       }
@@ -198,6 +205,16 @@ export async function runSubAgent(params: {
             role: "tool",
             content: errorMsg,
             toolCallId,
+          });
+
+          // Emit step for disallowed tool
+          orchestrator.addExpertStep(expertInstance.id, {
+            type: "tool_call",
+            timestamp: Date.now(),
+            toolName,
+            toolArgs: toolArgsStr,
+            toolResult: errorMsg,
+            toolSuccess: false,
           });
           continue;
         }
@@ -236,6 +253,17 @@ export async function runSubAgent(params: {
             outputParts.push(toolOutput);
           }
 
+          // Emit step for successful tool call
+          const hasError = !!result.errorMessage;
+          orchestrator.addExpertStep(expertInstance.id, {
+            type: "tool_call",
+            timestamp: Date.now(),
+            toolName,
+            toolArgs: toolArgsStr,
+            toolResult: resultContent?.slice(0, 500) || "OK",
+            toolSuccess: !hasError,
+          });
+
           // Check for errors from tool execution
           if (result.errorMessage) {
             errors.push(`${toolName}: ${result.errorMessage}`);
@@ -247,6 +275,16 @@ export async function runSubAgent(params: {
             role: "tool",
             content: errorMsg,
             toolCallId,
+          });
+
+          // Emit step for failed tool call
+          orchestrator.addExpertStep(expertInstance.id, {
+            type: "tool_call",
+            timestamp: Date.now(),
+            toolName,
+            toolArgs: toolArgsStr,
+            toolResult: errorMsg,
+            toolSuccess: false,
           });
         }
       }

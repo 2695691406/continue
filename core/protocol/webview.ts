@@ -52,6 +52,15 @@ export type ToWebviewFromIdeOrCoreProtocol = {
         roleName: string;
         status: "idle" | "working" | "completed" | "failed";
         currentTaskSubject?: string;
+        steps?: Array<{
+          type: "tool_call" | "text";
+          timestamp: number;
+          toolName?: string;
+          toolArgs?: string;
+          toolResult?: string;
+          toolSuccess?: boolean;
+          content?: string;
+        }>;
       }>;
       tasks: Array<{
         id: string;

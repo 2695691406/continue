@@ -22,6 +22,16 @@ export interface TeamsStateUpdatePayload {
     roleName: string;
     status: "idle" | "working" | "completed" | "failed";
     currentTaskSubject?: string;
+    /** Execution steps (tool calls and text responses) for GUI display */
+    steps?: Array<{
+      type: "tool_call" | "text";
+      timestamp: number;
+      toolName?: string;
+      toolArgs?: string;
+      toolResult?: string;
+      toolSuccess?: boolean;
+      content?: string;
+    }>;
   }>;
   tasks: Array<{
     id: string;
@@ -111,6 +121,7 @@ export class TeamsStateBroadcaster {
         roleName: expert.role.name,
         status: expert.status,
         currentTaskSubject: expert.currentTask?.subject,
+        steps: expert.steps,
       })),
       tasks: state.tasks.map((task) => ({
         id: task.id,

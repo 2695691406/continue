@@ -8,7 +8,7 @@
  * handles conflict detection, and manages the overall workflow.
  */
 
-import { ExpertInstance, ExpertRole, TaskItem, TeamsMessage, TeamsState } from "./types";
+import { ExpertInstance, ExpertRole, SubAgentStep, TaskItem, TeamsMessage, TeamsState } from "./types";
 import { TaskManager } from "./taskManager";
 import { ExpertRegistry, getExpertRegistry } from "./expertRegistry";
 
@@ -28,6 +28,7 @@ export interface OrchestratorEvent {
     | "expert_dispatched"
     | "expert_completed"
     | "expert_failed"
+    | "expert_step"
     | "message_sent"
     | "task_updated"
     | "orchestration_complete";
@@ -73,6 +74,7 @@ export class TeamsOrchestrator {
       currentTask: taskId
         ? this.taskManager.getTask(taskId)
         : undefined,
+      steps: [],
     };
 
     this.experts.set(expertId, expert);
@@ -117,6 +119,25 @@ export class TeamsOrchestrator {
     this.emit({
       type: "expert_failed",
       data: { expertId, role: expert.role.name, error },
+    });
+  }
+
+  /**
+   * Add an execution step to an expert's step history.
+   * This is called during the sub-agent tool-call loop to track progress.
+   */
+  addExpertStep(expertId: string, step: SubAgentStep): void {
+    const expert = this.experts.get(expertId);
+    if (!expert) return; // Silently ignore if expert not found
+
+    if (!expert.steps) {
+      expert.steps = [];
+    }
+    expert.steps.push(step);
+
+    this.emit({
+      type: "expert_step",
+      data: { expertId, step },
     });
   }
 

@@ -32,6 +32,27 @@ export interface ExpertRole {
 }
 
 /**
+ * A single execution step from a sub-agent's tool-call loop.
+ * Represents either a tool call or a text response from the expert LLM.
+ */
+export interface SubAgentStep {
+  /** Step type: tool call or final text output */
+  type: "tool_call" | "text";
+  /** Timestamp when this step occurred */
+  timestamp: number;
+  /** For tool calls: the tool name */
+  toolName?: string;
+  /** For tool calls: the arguments (stringified JSON) */
+  toolArgs?: string;
+  /** For tool calls: the result content */
+  toolResult?: string;
+  /** For tool calls: whether the call succeeded */
+  toolSuccess?: boolean;
+  /** For text steps: the text content */
+  content?: string;
+}
+
+/**
  * A running instance of an expert agent
  */
 export interface ExpertInstance {
@@ -45,6 +66,8 @@ export interface ExpertInstance {
   currentTask?: TaskItem;
   /** Accumulated output/result from this expert */
   result?: string;
+  /** Execution steps (tool calls and text responses) for GUI display */
+  steps?: SubAgentStep[];
 }
 
 /**
