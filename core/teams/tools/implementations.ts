@@ -9,6 +9,7 @@ import { ContextItem, ToolExtras } from "../..";
 import { TaskManager } from "../taskManager";
 import { TaskStatus } from "../types";
 import { TeamsToolNames } from "../tools";
+import { runSubAgent } from "../subAgentRunner";
 
 /**
  * Singleton TaskManager instance shared across all teams tool calls.
@@ -129,15 +130,10 @@ export async function teamsTaskGetImpl(
 /**
  * Implementation: teams_dispatch_agent
  *
- * MVP STUB: Creates a task board entry and returns a delegation receipt.
- * The actual sub-agent LLM execution loop is a future enhancement
- * where the expert executor will create an independent LLM session
- * with the expert's system prompt and restricted tool set.
- *
- * Current behavior:
- * 1. Validates the requested agent role
- * 2. Creates/updates a task board entry
- * 3. Returns a delegation receipt
+ * Dispatches a specialized expert agent to execute a task.
+ * Creates an independent LLM session with the expert's system prompt
+ * and restricted tool set, runs a tool-call loop until completion,
+ * and returns the collected results.
  */
 export async function teamsAgentImpl(
   args: any,
@@ -148,7 +144,7 @@ export async function teamsAgentImpl(
   const context = args.context as string | undefined;
   const taskId = args.taskId as string | undefined;
 
-  // If a taskId is provided, update its status
+  // If a taskId is provided, update its status to in_progress
   const tm = getTaskManager();
   if (taskId) {
     try {
@@ -166,21 +162,53 @@ export async function teamsAgentImpl(
     }
   }
 
-  // Return delegation receipt (MVP stub - future: trigger expert executor LLM session)
+  // Run the sub-agent LLM session
+  // Use dynamic import to break the circular dependency:
+  // callTool.ts → implementations.ts → subAgentRunner → callTool.ts
+  const { callTool } = await import("../../tools/callTool");
+  const result = await runSubAgent({
+    roleName: agentName,
+    taskDescription,
+    context,
+    taskId,
+    extras,
+    callToolFn: callTool,
+  });
+
+  // If a taskId was provided, update the task with the result
+  if (taskId) {
+    try {
+      tm.updateTask(taskId, {
+        status: result.success ? "completed" : "failed",
+        result: result.output.slice(0, 2000),
+      });
+    } catch {
+      // Task may have already been updated by the expert itself
+    }
+  }
+
+  // Format the result for the Leader
+  const statusIcon = result.success ? "✅" : "❌";
+  const errorSection =
+    result.errors && result.errors.length > 0
+      ? `\n\n### Errors\n${result.errors.map((e) => `- ${e}`).join("\n")}`
+      : "";
+
   return [
     {
-      name: `Agent Dispatched: ${agentName}`,
-      description: taskDescription.slice(0, 100),
+      name: `${statusIcon} ${agentName} Report`,
+      description: `${result.toolCallCount} tool calls, ${result.success ? "succeeded" : "failed"}`,
       content: [
-        `## Expert Dispatch Receipt`,
+        `## Expert Report: ${agentName}`,
         ``,
-        `**Agent**: ${agentName}`,
-        `**Task**: ${taskDescription}`,
-        context ? `**Context**: ${context}` : "",
+        `**Status**: ${result.success ? "Completed" : "Failed"}`,
+        `**Tool Calls**: ${result.toolCallCount}`,
         taskId ? `**Task ID**: ${taskId}` : "",
         ``,
-        `> The ${agentName} has been dispatched and is working on this task.`,
-        `> Use TaskGet or TaskList to check progress.`,
+        `### Output`,
+        ``,
+        result.output,
+        errorSection,
       ]
         .filter(Boolean)
         .join("\n"),

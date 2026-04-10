@@ -19,6 +19,7 @@ export {
   buildExpertDelegationPrompt,
   filterToolsForExpert,
 } from "./expertExecutor";
+export { runSubAgent } from "./subAgentRunner";
 export type {
   ExpertRole,
   ExpertInstance,
