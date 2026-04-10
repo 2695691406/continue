@@ -46,6 +46,9 @@ export class TeamsOrchestrator {
   private listeners: OrchestratorEventListener[] = [];
   private isRunning: boolean = false;
 
+  /** Tracks file paths written by each expert for conflict detection */
+  private expertFileWrites: Map<string, Set<string>> = new Map();
+
   constructor(taskManager: TaskManager, registry?: ExpertRegistry) {
     this.taskManager = taskManager;
     this.registry = registry || getExpertRegistry();
@@ -202,22 +205,41 @@ export class TeamsOrchestrator {
   }
 
   /**
+   * Record that an expert has written to a file.
+   * Called during tool execution when write tools (edit, create) complete.
+   */
+  recordFileWrite(expertId: string, filePath: string): void {
+    if (!this.expertFileWrites.has(expertId)) {
+      this.expertFileWrites.set(expertId, new Set());
+    }
+    this.expertFileWrites.get(expertId)!.add(filePath);
+  }
+
+  /**
+   * Get the set of files written by a specific expert.
+   */
+  getExpertFileWrites(expertId: string): Set<string> {
+    return this.expertFileWrites.get(expertId) ?? new Set();
+  }
+
+  /**
    * Check for potential file conflicts between active experts.
    * Returns a list of conflict descriptions if found.
+   *
+   * Detects two levels of conflicts:
+   * 1. Role-level: two write-capable (non-research) experts active
+   * 2. File-level: two active experts have written to the same file
    */
   detectConflicts(): string[] {
     const conflicts: string[] = [];
     const activeExperts = this.getActiveExperts();
 
-    // Check for overlapping write scopes
-    // In a full implementation, this would track which files each expert
-    // is modifying and flag conflicts
+    // Role-level check: two write-capable experts active simultaneously
     for (let i = 0; i < activeExperts.length; i++) {
       for (let j = i + 1; j < activeExperts.length; j++) {
         const a = activeExperts[i];
         const b = activeExperts[j];
 
-        // Two coding experts shouldn't work simultaneously without scope isolation
         if (
           !a.role.readonly &&
           !b.role.readonly &&
@@ -226,6 +248,24 @@ export class TeamsOrchestrator {
         ) {
           conflicts.push(
             `Potential conflict: ${a.role.name} (${a.id}) and ${b.role.name} (${b.id}) are both active and have write access.`,
+          );
+        }
+      }
+    }
+
+    // File-level check: overlapping file writes between active experts
+    for (let i = 0; i < activeExperts.length; i++) {
+      const filesA = this.expertFileWrites.get(activeExperts[i].id);
+      if (!filesA || filesA.size === 0) continue;
+
+      for (let j = i + 1; j < activeExperts.length; j++) {
+        const filesB = this.expertFileWrites.get(activeExperts[j].id);
+        if (!filesB || filesB.size === 0) continue;
+
+        const overlapping = [...filesA].filter((f) => filesB.has(f));
+        if (overlapping.length > 0) {
+          conflicts.push(
+            `File conflict: ${activeExperts[i].role.name} (${activeExperts[i].id}) and ${activeExperts[j].role.name} (${activeExperts[j].id}) both wrote to: ${overlapping.join(", ")}`,
           );
         }
       }
@@ -260,6 +300,7 @@ export class TeamsOrchestrator {
     this.experts.clear();
     this.messages = [];
     this.isRunning = false;
+    this.expertFileWrites.clear();
     this.taskManager.clear();
     nextExpertId = 1;
   }

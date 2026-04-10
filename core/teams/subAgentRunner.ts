@@ -290,6 +290,14 @@ export async function runSubAgent(params: {
             toolSuccess: !hasError,
           });
 
+          // Track file writes for conflict detection
+          if (!hasError && isWriteTool(toolName)) {
+            const filePath = extractFilePath(toolArgsStr);
+            if (filePath) {
+              orchestrator.recordFileWrite(expertInstance.id, filePath);
+            }
+          }
+
           // Check for errors from tool execution
           if (result.errorMessage) {
             errors.push(`${toolName}: ${result.errorMessage}`);
@@ -487,4 +495,32 @@ export async function runSubAgentWithRetry(
     toolCallCount: 0,
     errors: ["Execution aborted before first attempt"],
   };
+}
+
+/** Tool names that modify files */
+const WRITE_TOOL_NAMES = new Set([
+  "edit_existing_file",
+  "create_new_file",
+  "search_replace",
+  "create_file",
+]);
+
+/**
+ * Check if a tool name is a write tool that modifies files.
+ */
+function isWriteTool(toolName: string): boolean {
+  return WRITE_TOOL_NAMES.has(toolName);
+}
+
+/**
+ * Extract the file path from a tool call's arguments JSON.
+ * Returns undefined if the path cannot be determined.
+ */
+function extractFilePath(argsStr: string): string | undefined {
+  try {
+    const args = JSON.parse(argsStr);
+    return args.filepath || args.path || args.filename || args.file;
+  } catch {
+    return undefined;
+  }
 }

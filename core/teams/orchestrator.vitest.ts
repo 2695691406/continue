@@ -34,6 +34,14 @@ function createMockRegistry(): ExpertRegistry {
     readonly: true,
   });
 
+  roles.set("backend-dev", {
+    name: "backend-dev",
+    description: "Backend developer",
+    tools: ["read_file", "search_replace", "create_file"],
+    systemPrompt: "You are a backend developer.",
+    readonly: false,
+  });
+
   // Inject the roles map using Object.defineProperty
   Object.defineProperty(registry, "roles", { value: roles, writable: true });
 
@@ -332,6 +340,67 @@ describe("TeamsOrchestrator", () => {
     test("dispatched expert starts with empty steps array", () => {
       const expert = orchestrator.dispatchExpert("coding-expert", "Task");
       expect(expert.steps).toEqual([]);
+    });
+  });
+
+  describe("file-level conflict detection", () => {
+    test("recordFileWrite tracks files per expert", () => {
+      const expert = orchestrator.dispatchExpert("coding-expert", "Fix bug");
+      orchestrator.recordFileWrite(expert.id, "src/auth.ts");
+      orchestrator.recordFileWrite(expert.id, "src/utils.ts");
+
+      const files = orchestrator.getExpertFileWrites(expert.id);
+      expect(files.size).toBe(2);
+      expect(files.has("src/auth.ts")).toBe(true);
+      expect(files.has("src/utils.ts")).toBe(true);
+    });
+
+    test("getExpertFileWrites returns empty set for unknown expert", () => {
+      const files = orchestrator.getExpertFileWrites("nonexistent");
+      expect(files.size).toBe(0);
+    });
+
+    test("detectConflicts reports file-level conflicts", () => {
+      const expertA = orchestrator.dispatchExpert("coding-expert", "Fix auth");
+      const expertB = orchestrator.dispatchExpert("backend-dev", "Fix API");
+
+      orchestrator.recordFileWrite(expertA.id, "src/auth.ts");
+      orchestrator.recordFileWrite(expertB.id, "src/auth.ts"); // same file
+
+      const conflicts = orchestrator.detectConflicts();
+      // Should have role-level conflict + file-level conflict
+      expect(conflicts.some((c) => c.includes("File conflict"))).toBe(true);
+      expect(conflicts.some((c) => c.includes("src/auth.ts"))).toBe(true);
+    });
+
+    test("no file conflict when experts write different files", () => {
+      const expertA = orchestrator.dispatchExpert("coding-expert", "Fix auth");
+      const expertB = orchestrator.dispatchExpert("backend-dev", "Fix API");
+
+      orchestrator.recordFileWrite(expertA.id, "src/auth.ts");
+      orchestrator.recordFileWrite(expertB.id, "src/api.ts");
+
+      const conflicts = orchestrator.detectConflicts();
+      // Should still have role-level conflict but no file-level
+      expect(conflicts.some((c) => c.includes("File conflict"))).toBe(false);
+    });
+
+    test("no file conflict for read-only experts", () => {
+      orchestrator.dispatchExpert("research-expert", "Research auth");
+      orchestrator.dispatchExpert("verify-expert", "Verify auth");
+
+      const conflicts = orchestrator.detectConflicts();
+      expect(conflicts).toHaveLength(0);
+    });
+
+    test("reset clears file tracking", () => {
+      const expert = orchestrator.dispatchExpert("coding-expert", "Fix bug");
+      orchestrator.recordFileWrite(expert.id, "src/auth.ts");
+
+      orchestrator.reset();
+
+      const files = orchestrator.getExpertFileWrites(expert.id);
+      expect(files.size).toBe(0);
     });
   });
 });
