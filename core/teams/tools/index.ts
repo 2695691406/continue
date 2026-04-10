@@ -7,3 +7,9 @@ export {
   agentTool,
   sendMessageTool,
 } from "./teamTools";
+export {
+  callTeamsTool,
+  isTeamsTool,
+  getTaskManager,
+  resetTaskManager,
+} from "./implementations";

@@ -1,6 +1,7 @@
 import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { ContextItem, McpUiState, Tool, ToolCall, ToolExtras } from "..";
 import { MCPManagerSingleton } from "../context/mcp/MCPManagerSingleton";
+import { callTeamsTool, isTeamsTool } from "../teams/tools/implementations";
 import { ContinueError, ContinueErrorReason } from "../util/errors";
 import { canParseUrl } from "../util/url";
 import { BuiltInToolNames } from "./builtIn";
@@ -225,6 +226,10 @@ export async function callBuiltInTool(
     case BuiltInToolNames.ViewSubdirectory:
       return await viewSubdirectoryImpl(args, extras);
     default:
+      // Check if it's a teams mode tool
+      if (isTeamsTool(functionName)) {
+        return await callTeamsTool(functionName, args, extras);
+      }
       throw new Error(`Tool "${functionName}" not found`);
   }
 }

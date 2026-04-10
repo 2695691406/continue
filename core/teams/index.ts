@@ -9,6 +9,16 @@
 export { ExpertRegistry, getExpertRegistry } from "./expertRegistry";
 export { loadExpertRole, buildExpertSystemPrompt, parseFrontmatter } from "./promptLoader";
 export { TaskManager } from "./taskManager";
+export {
+  TeamsOrchestrator,
+  getOrchestrator,
+  resetOrchestrator,
+} from "./orchestrator";
+export {
+  ExpertExecutor,
+  buildExpertDelegationPrompt,
+  filterToolsForExpert,
+} from "./expertExecutor";
 export type {
   ExpertRole,
   ExpertInstance,
