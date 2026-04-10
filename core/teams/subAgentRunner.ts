@@ -19,14 +19,14 @@ import {
   Tool,
   ToolCall,
   ToolExtras,
-} from "../..";
+} from "..";
 import {
   ExpertExecutor,
   ExpertExecutionResult,
-} from "../expertExecutor";
-import { DelegationContract } from "../types";
-import { getExpertRegistry } from "../expertRegistry";
-import { getOrchestrator } from "../orchestrator";
+} from "./expertExecutor";
+import { DelegationContract } from "./types";
+import { getExpertRegistry } from "./expertRegistry";
+import { getOrchestrator } from "./orchestrator";
 
 /** Maximum number of tool-call rounds for a single expert session */
 const MAX_TOOL_ROUNDS = 25;
