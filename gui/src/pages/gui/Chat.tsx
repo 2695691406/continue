@@ -59,6 +59,7 @@ import { getLocalStorage, setLocalStorage } from "../../util/localStorage";
 import { EmptyChatBody } from "./EmptyChatBody";
 import { ExploreDialogWatcher } from "./ExploreDialogWatcher";
 import { useAutoScroll } from "./useAutoScroll";
+import { ExpertPanel, TaskBoard } from "../../components/Teams";
 
 // Helper function to find the index of the latest conversation summary
 function findLatestSummaryIndex(history: ChatHistoryItem[]): number {
@@ -469,6 +470,12 @@ export function Chat() {
           ))}
       </StepsDiv>
       <div className={"relative"}>
+        {mode === "teams" && (
+          <div className="px-2">
+            <ExpertPanel />
+            <TaskBoard />
+          </div>
+        )}
         <ContinueInputBox
           isMainInput
           isLastUserInput={false}
