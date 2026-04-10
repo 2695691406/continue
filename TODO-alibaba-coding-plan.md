@@ -77,7 +77,7 @@
 
 ### 9. 文档
 
-- [ ] 添加用户配置示例文档（如何在 config.yaml 或 config.json 中配置 Coding Plan）
+- [x] 添加用户配置示例文档（如何在 config.yaml 或 config.json 中配置 Coding Plan）
 
 ---
 

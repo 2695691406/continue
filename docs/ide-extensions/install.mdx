@@ -1,6 +1,5 @@
 ---
-title: "Install"
-description: "Get Continue installed in your favorite IDE in just a few steps."
+title: Install
 ---
 
 <iframe
@@ -81,3 +80,45 @@ Click `Install`, which will cause the Continue logo to show up on the right tool
 Click "Get started" to sign in to Mission Control and get started.
 
 ![Hub Onboarding in the Extension](../images/getting-started/images/hub-onboarding-card-81abd457b6d131c4b0aa89a5a6d647d3.png)
+
+## Install from VSIX
+
+If you can't access the VS Code Marketplace (e.g. in restricted network environments), you can install Continue from a `.vsix` file.
+
+### Build the VSIX
+
+```bash
+# Clone the repository
+git clone https://github.com/continuedev/continue.git
+cd continue
+
+# Install dependencies and build packages
+npm install
+cd packages/config-types && npm install && npm run build && cd ../..
+cd packages/config-yaml && npm install && npm run build && cd ../..
+cd packages/llm-info && npm install && npm run build && cd ../..
+cd packages/openai-adapters && npm install && npm run build && cd ../..
+cd packages/fetch && npm install && npm run build && cd ../..
+cd packages/terminal-security && npm install && npm run build && cd ../..
+
+# Build the GUI
+cd gui && npm install && npm run build && cd ..
+
+# Install extension dependencies and package
+cd extensions/vscode
+npm install
+npm run prepackage
+npm run package
+```
+
+The resulting `.vsix` file is in `extensions/vscode/build/`.
+
+### Install in VS Code
+
+Open VS Code and run **Extensions: Install from VSIX...** from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`), then select the `.vsix` file.
+
+Alternatively, use the CLI:
+
+```bash
+code --install-extension extensions/vscode/build/continue-*.vsix
+```

@@ -1,0 +1,52 @@
+---
+title: Alibaba Cloud Coding Plan
+---
+
+Alibaba Cloud Coding Plan (百炼) is a subscription-based API service for AI coding. It provides access to Qwen, Kimi, GLM, and MiniMax models through an OpenAI-compatible API.
+
+Get an API key from the [Alibaba Cloud Bailian Console](https://bailian.console.aliyun.com/). Coding Plan keys use the `sk-sp-` prefix and are separate from standard Bailian API keys.
+
+## Chat model
+
+We recommend **qwen3-coder-plus** as your chat model.
+
+<Tabs>
+  <Tab title="YAML">
+  ```yaml title="config.yaml"
+  models:
+    - name: Qwen3 Coder Plus
+      provider: aliyun-coding-plan
+      model: qwen3-coder-plus
+      apiKey: sk-sp-xxxxx
+  ```
+  </Tab>
+  <Tab title="JSON">
+  ```json title="config.json"
+  {
+    "models": [
+      {
+        "title": "Qwen3 Coder Plus",
+        "provider": "aliyun-coding-plan",
+        "model": "qwen3-coder-plus",
+        "apiKey": "sk-sp-xxxxx"
+      }
+    ]
+  }
+  ```
+  </Tab>
+</Tabs>
+
+## Available models
+
+| Model | Context length | Notes |
+| --- | --- | --- |
+| `qwen3-coder-plus` | 262k | Coding-optimized, recommended default |
+| `qwen3-coder-next` | 262k | Next-gen coding model with enhanced reasoning |
+| `qwen3.5-plus` | 131k | General-purpose, supports image input |
+| `qwen3-max-2026-01-23` | 131k | Max-capability model for complex tasks |
+| `kimi-k2.5` | 131k | Moonshot AI's Kimi, supports image input |
+| `glm-5` | 131k | Zhipu AI flagship model |
+| `glm-4.7` | 131k | Zhipu AI |
+| `MiniMax-M2.5` | 204k | Strong reasoning capabilities |
+
+The model list may change as Coding Plan updates its subscription offerings. Check the [Bailian Console](https://bailian.console.aliyun.com/) for the latest available models.
