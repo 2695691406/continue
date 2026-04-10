@@ -93,9 +93,49 @@ export class TaskManager {
       for (const listener of this.listeners) {
         listener(task, oldStatus);
       }
+
+      // Cascade failure: if a task fails or is cancelled, fail all
+      // pending tasks that depend on it (directly or transitively)
+      if (updates.status === "failed" || updates.status === "cancelled") {
+        this.cascadeFailure(id);
+      }
     }
 
     return task;
+  }
+
+  /**
+   * Fail all pending tasks that are blocked by the given task.
+   * Cascades transitively through the dependency graph.
+   */
+  private cascadeFailure(failedTaskId: string): void {
+    const toProcess = [failedTaskId];
+    const processed = new Set<string>();
+
+    while (toProcess.length > 0) {
+      const currentId = toProcess.pop()!;
+      if (processed.has(currentId)) continue;
+      processed.add(currentId);
+
+      for (const [, task] of this.tasks) {
+        if (
+          task.status === "pending" &&
+          task.blockedBy?.includes(currentId)
+        ) {
+          const oldStatus = task.status;
+          task.status = "failed";
+          task.result = `Blocked dependency ${currentId} failed`;
+          task.updatedAt = Date.now();
+
+          for (const listener of this.listeners) {
+            listener(task, oldStatus);
+          }
+
+          // Continue cascading through this newly-failed task
+          toProcess.push(task.id);
+        }
+      }
+    }
   }
 
   /**

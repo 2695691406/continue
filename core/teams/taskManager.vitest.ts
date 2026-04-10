@@ -253,4 +253,118 @@ describe("TaskManager", () => {
       expect(events).toHaveLength(1); // no new event after unsubscribe
     });
   });
+
+  describe("cascadeFailure", () => {
+    test("fails pending tasks blocked by a failed task", () => {
+      const taskA = tm.createTask({ subject: "A", description: "A" });
+      const taskB = tm.createTask({
+        subject: "B",
+        description: "B",
+        blockedBy: [taskA.id],
+      });
+
+      tm.updateTask(taskA.id, { status: "failed" });
+
+      const updated = tm.getTask(taskB.id)!;
+      expect(updated.status).toBe("failed");
+      expect(updated.result).toContain("Blocked dependency");
+    });
+
+    test("cascades transitively through dependency chain", () => {
+      const taskA = tm.createTask({ subject: "A", description: "A" });
+      const taskB = tm.createTask({
+        subject: "B",
+        description: "B",
+        blockedBy: [taskA.id],
+      });
+      const taskC = tm.createTask({
+        subject: "C",
+        description: "C",
+        blockedBy: [taskB.id],
+      });
+
+      tm.updateTask(taskA.id, { status: "failed" });
+
+      expect(tm.getTask(taskB.id)!.status).toBe("failed");
+      expect(tm.getTask(taskC.id)!.status).toBe("failed");
+    });
+
+    test("cascades on cancelled task", () => {
+      const taskA = tm.createTask({ subject: "A", description: "A" });
+      const taskB = tm.createTask({
+        subject: "B",
+        description: "B",
+        blockedBy: [taskA.id],
+      });
+
+      tm.updateTask(taskA.id, { status: "cancelled" });
+
+      expect(tm.getTask(taskB.id)!.status).toBe("failed");
+    });
+
+    test("does not cascade to already completed tasks", () => {
+      const taskA = tm.createTask({ subject: "A", description: "A" });
+      const taskB = tm.createTask({
+        subject: "B",
+        description: "B",
+        blockedBy: [taskA.id],
+      });
+
+      // Complete B first
+      tm.updateTask(taskB.id, { status: "completed" });
+      // Then fail A
+      tm.updateTask(taskA.id, { status: "failed" });
+
+      // B should remain completed
+      expect(tm.getTask(taskB.id)!.status).toBe("completed");
+    });
+
+    test("does not cascade to in_progress tasks", () => {
+      const taskA = tm.createTask({ subject: "A", description: "A" });
+      const taskB = tm.createTask({
+        subject: "B",
+        description: "B",
+        blockedBy: [taskA.id],
+      });
+
+      tm.updateTask(taskB.id, { status: "in_progress" });
+      tm.updateTask(taskA.id, { status: "failed" });
+
+      // B is already in_progress, should not be failed
+      expect(tm.getTask(taskB.id)!.status).toBe("in_progress");
+    });
+
+    test("emits change events for cascaded failures", () => {
+      const taskA = tm.createTask({ subject: "A", description: "A" });
+      tm.createTask({
+        subject: "B",
+        description: "B",
+        blockedBy: [taskA.id],
+      });
+
+      const events: Array<{ id: string; status: string }> = [];
+      tm.onTaskChange((task) => events.push({ id: task.id, status: task.status }));
+
+      tm.updateTask(taskA.id, { status: "failed" });
+
+      // Should have 2 events: taskA failed + taskB cascaded failure
+      expect(events).toHaveLength(2);
+      expect(events[0].status).toBe("failed");
+      expect(events[1].status).toBe("failed");
+    });
+
+    test("does not cascade for completed or in_progress status", () => {
+      const taskA = tm.createTask({ subject: "A", description: "A" });
+      const taskB = tm.createTask({
+        subject: "B",
+        description: "B",
+        blockedBy: [taskA.id],
+      });
+
+      tm.updateTask(taskA.id, { status: "completed" });
+
+      // B should still be pending (not cascaded)
+      expect(tm.getTask(taskB.id)!.status).toBe("pending");
+    });
+  });
 });
