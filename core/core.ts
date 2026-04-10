@@ -22,6 +22,7 @@ import Ollama from "./llm/llms/Ollama";
 import { EditAggregator } from "./nextEdit/context/aggregateEdits";
 import { createNewPromptFileV2 } from "./promptFiles/createNewPromptFile";
 import { callTool } from "./tools/callTool";
+import { setTeamsStateCallback } from "./teams/tools/implementations";
 import { ChatDescriber } from "./util/chatDescriber";
 import { compactConversation } from "./util/conversationCompaction";
 import { GlobalContext } from "./util/GlobalContext";
@@ -281,6 +282,12 @@ export class Core {
       );
 
       this.registerMessageHandlers(ideSettingsPromise);
+
+      // Initialize teams mode state broadcaster
+      // This wires orchestrator events → teamsStateUpdate protocol messages → GUI
+      setTeamsStateCallback((payload) => {
+        this.messenger.send("teamsStateUpdate", payload);
+      });
     } catch (error) {
       Logger.error(error);
       throw error; // Re-throw to prevent partially initialized core

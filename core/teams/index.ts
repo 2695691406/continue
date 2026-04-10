@@ -24,6 +24,13 @@ export {
   dispatchParallel,
   formatParallelResult,
 } from "./parallelDispatcher";
+export {
+  TeamsStateBroadcaster,
+} from "./stateBroadcaster";
+export type {
+  TeamsStateUpdatePayload,
+  StateSendFn,
+} from "./stateBroadcaster";
 export type {
   ExpertRole,
   ExpertInstance,

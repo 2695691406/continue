@@ -10,6 +10,11 @@ import { TaskManager } from "../taskManager";
 import { TaskStatus } from "../types";
 import { TeamsToolNames } from "../tools";
 import { runSubAgent } from "../subAgentRunner";
+import {
+  TeamsStateBroadcaster,
+  TeamsStateUpdatePayload,
+} from "../stateBroadcaster";
+import { getOrchestrator } from "../orchestrator";
 
 /**
  * Singleton TaskManager instance shared across all teams tool calls.
@@ -26,6 +31,34 @@ export function getTaskManager(): TaskManager {
 export function resetTaskManager(): void {
   taskManagerInstance?.clear();
   taskManagerInstance = undefined;
+  broadcasterInstance?.stop();
+  broadcasterInstance = undefined;
+}
+
+/**
+ * Singleton broadcaster instance. Initialized lazily when
+ * setTeamsStateCallback is called.
+ */
+let broadcasterInstance: TeamsStateBroadcaster | undefined;
+
+/**
+ * Register a callback to receive teams state updates.
+ * Call this from core.ts to wire the teamsStateUpdate protocol message.
+ *
+ * Usage in Core class:
+ *   setTeamsStateCallback((payload) => {
+ *     this.messenger.send("teamsStateUpdate", payload);
+ *   });
+ */
+export function setTeamsStateCallback(
+  sendFn: (payload: TeamsStateUpdatePayload) => void,
+): void {
+  const tm = getTaskManager();
+  const orchestrator = getOrchestrator(tm);
+
+  broadcasterInstance?.stop();
+  broadcasterInstance = new TeamsStateBroadcaster(orchestrator, tm, sendFn);
+  broadcasterInstance.start();
 }
 
 /**
