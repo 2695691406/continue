@@ -3325,4 +3325,90 @@ export const models: { [key: string]: ModelPackage } = {
     icon: "mimo.png",
     isOpenSource: false,
   },
+
+  // Alibaba Cloud Coding Plan models
+  aliyunQwen3CoderPlus: {
+    title: "Qwen3 Coder Plus",
+    description:
+      "Alibaba's coding-optimized model with strong code generation capabilities, available via Coding Plan.",
+    refUrl: "https://help.aliyun.com/zh/model-studio/coding-plan",
+    params: {
+      title: "Qwen3 Coder Plus",
+      model: "qwen3-coder-plus",
+      contextLength: 262_000,
+    },
+    icon: "qwen.png",
+    providerOptions: ["aliyun-coding-plan"],
+    isOpenSource: false,
+  },
+  aliyunQwen3CoderNext: {
+    title: "Qwen3 Coder Next",
+    description:
+      "Next generation of Alibaba's coding model with enhanced reasoning, available via Coding Plan.",
+    refUrl: "https://help.aliyun.com/zh/model-studio/coding-plan",
+    params: {
+      title: "Qwen3 Coder Next",
+      model: "qwen3-coder-next",
+      contextLength: 262_000,
+    },
+    icon: "qwen.png",
+    providerOptions: ["aliyun-coding-plan"],
+    isOpenSource: false,
+  },
+  aliyunQwen35Plus: {
+    title: "Qwen3.5 Plus",
+    description:
+      "Alibaba's latest general-purpose model with image understanding support, available via Coding Plan.",
+    refUrl: "https://help.aliyun.com/zh/model-studio/coding-plan",
+    params: {
+      title: "Qwen3.5 Plus",
+      model: "qwen3.5-plus",
+      contextLength: 131_000,
+    },
+    icon: "qwen.png",
+    providerOptions: ["aliyun-coding-plan"],
+    isOpenSource: false,
+  },
+  aliyunKimiK25: {
+    title: "Kimi K2.5",
+    description:
+      "Moonshot AI's Kimi K2.5 with image understanding, available via Coding Plan.",
+    refUrl: "https://help.aliyun.com/zh/model-studio/coding-plan",
+    params: {
+      title: "Kimi K2.5",
+      model: "kimi-k2.5",
+      contextLength: 131_000,
+    },
+    icon: "moonshot.png",
+    providerOptions: ["aliyun-coding-plan"],
+    isOpenSource: false,
+  },
+  aliyunGlm5: {
+    title: "GLM-5",
+    description:
+      "Zhipu AI's GLM-5 flagship model, available via Coding Plan.",
+    refUrl: "https://help.aliyun.com/zh/model-studio/coding-plan",
+    params: {
+      title: "GLM-5",
+      model: "glm-5",
+      contextLength: 131_000,
+    },
+    icon: "zai.svg",
+    providerOptions: ["aliyun-coding-plan"],
+    isOpenSource: false,
+  },
+  aliyunMiniMaxM25: {
+    title: "MiniMax M2.5",
+    description:
+      "MiniMax M2.5 model with strong reasoning, available via Coding Plan.",
+    refUrl: "https://help.aliyun.com/zh/model-studio/coding-plan",
+    params: {
+      title: "MiniMax M2.5",
+      model: "MiniMax-M2.5",
+      contextLength: 204_800,
+    },
+    icon: "minimax.png",
+    providerOptions: ["aliyun-coding-plan"],
+    isOpenSource: false,
+  },
 };

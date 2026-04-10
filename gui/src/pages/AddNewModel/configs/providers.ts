@@ -1369,4 +1369,33 @@ Fund your wallet with USDC on Solana or Base. ClawRouter uses x402 micropayments
     ],
     apiKeyUrl: "https://portal.nousresearch.com",
   },
+  "aliyun-coding-plan": {
+    title: "Alibaba Cloud Coding Plan",
+    provider: "aliyun-coding-plan",
+    description:
+      "Subscription-based AI coding service from Alibaba Cloud with access to multiple models.",
+    longDescription:
+      "Alibaba Cloud Coding Plan (百炼) is a subscription-based API service for AI coding scenarios. It provides access to Qwen, Kimi, GLM, and MiniMax models via an OpenAI-compatible API. Get your API key from the [Alibaba Cloud Bailian platform](https://bailian.console.aliyun.com/).",
+    icon: "qwen.png",
+    tags: [ModelProviderTags.RequiresApiKey],
+    collectInputFor: [
+      {
+        inputType: "text",
+        key: "apiKey",
+        label: "API Key",
+        placeholder: "Enter your Coding Plan API key (sk-sp-xxxxx)",
+        required: true,
+      },
+      ...completionParamsInputsConfigs,
+    ],
+    packages: [
+      models.aliyunQwen3CoderPlus,
+      models.aliyunQwen3CoderNext,
+      models.aliyunQwen35Plus,
+      models.aliyunKimiK25,
+      models.aliyunGlm5,
+      models.aliyunMiniMaxM25,
+    ],
+    apiKeyUrl: "https://bailian.console.aliyun.com/",
+  },
 };
