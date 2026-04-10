@@ -224,6 +224,22 @@ type SessionState = {
   contextPercentage?: number;
   inlineErrorMessage?: InlineErrorMessageType;
   compactionLoading: Record<number, boolean>; // Track compaction loading by message index
+  /** Teams mode state - active expert agents and task board */
+  teamsState?: {
+    experts: Array<{
+      id: string;
+      roleName: string;
+      status: "idle" | "working" | "completed" | "failed";
+      currentTaskSubject?: string;
+    }>;
+    tasks: Array<{
+      id: string;
+      subject: string;
+      status: string;
+      assignee?: string;
+    }>;
+    isOrchestratorRunning: boolean;
+  };
 };
 
 export const INITIAL_SESSION_STATE: SessionState = {
@@ -1004,6 +1020,13 @@ export const sessionSlice = createSlice({
     setContextPercentage: (state, action: PayloadAction<number>) => {
       state.contextPercentage = action.payload;
     },
+    /** Update the teams mode state (expert list, task board, orchestrator status) */
+    updateTeamsState: (
+      state,
+      action: PayloadAction<SessionState["teamsState"]>,
+    ) => {
+      state.teamsState = action.payload;
+    },
   },
   selectors: {
     selectIsGatheringContext: (state) => {
@@ -1093,6 +1116,7 @@ export const {
   setIsPruned,
   setContextPercentage,
   setCompactionLoading,
+  updateTeamsState,
 } = sessionSlice.actions;
 
 export const { selectIsGatheringContext } = sessionSlice.selectors;
