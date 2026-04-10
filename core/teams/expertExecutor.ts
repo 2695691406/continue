@@ -66,7 +66,7 @@ const TOOL_NAME_MAPPING: Record<string, string> = {
   search_codebase: "codebase",
   fetch_content: "fetch_url_content",
   search_web: "search_web",
-  delete_file: "create_new_file", // No direct delete, mapped to create for now
+  // delete_file has no Continue built-in equivalent; omitted intentionally
   // Teams-specific tools
   TaskCreate: "teams_task_create",
   TaskUpdate: "teams_task_update",

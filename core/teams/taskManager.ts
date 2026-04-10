@@ -7,15 +7,6 @@
 
 import { TaskItem, TaskStatus } from "./types";
 
-let nextTaskId = 1;
-
-/**
- * Generate a unique task ID.
- */
-function generateTaskId(): string {
-  return `task-${nextTaskId++}`;
-}
-
 /**
  * Callback type for task status change events.
  */
@@ -28,6 +19,14 @@ export type TaskChangeListener = (task: TaskItem, oldStatus: TaskStatus) => void
 export class TaskManager {
   private tasks: Map<string, TaskItem> = new Map();
   private listeners: TaskChangeListener[] = [];
+  private nextTaskId = 1;
+
+  /**
+   * Generate a unique task ID (instance-scoped counter).
+   */
+  private generateTaskId(): string {
+    return `task-${this.nextTaskId++}`;
+  }
 
   /**
    * Create a new task on the task board.
@@ -41,7 +40,7 @@ export class TaskManager {
   }): TaskItem {
     const now = Date.now();
     const task: TaskItem = {
-      id: generateTaskId(),
+      id: this.generateTaskId(),
       subject: params.subject,
       description: params.description,
       status: "pending",
@@ -194,7 +193,7 @@ export class TaskManager {
    */
   clear(): void {
     this.tasks.clear();
-    nextTaskId = 1;
+    this.nextTaskId = 1;
   }
 
   /**

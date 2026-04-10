@@ -9,12 +9,25 @@ import { ContextItem, ToolExtras } from "../..";
 import { TaskManager } from "../taskManager";
 import { TaskStatus } from "../types";
 import { TeamsToolNames } from "../tools";
-import { runSubAgent } from "../subAgentRunner";
+import { runSubAgent, CallToolFn } from "../subAgentRunner";
 import {
   TeamsStateBroadcaster,
   TeamsStateUpdatePayload,
 } from "../stateBroadcaster";
 import { getOrchestrator } from "../orchestrator";
+
+/**
+ * Lazy-cached callTool import to break circular dependency.
+ * The module is loaded once and cached for subsequent calls.
+ */
+let cachedCallToolFn: CallToolFn | undefined;
+async function getCallToolFn(): Promise<CallToolFn> {
+  if (!cachedCallToolFn) {
+    const module = await import("../../tools/callTool");
+    cachedCallToolFn = module.callTool;
+  }
+  return cachedCallToolFn;
+}
 
 /**
  * Singleton TaskManager instance shared across all teams tool calls.
@@ -196,16 +209,16 @@ export async function teamsAgentImpl(
   }
 
   // Run the sub-agent LLM session
-  // Use dynamic import to break the circular dependency:
+  // Use lazy-cached dynamic import to break the circular dependency:
   // callTool.ts → implementations.ts → subAgentRunner → callTool.ts
-  const { callTool } = await import("../../tools/callTool");
+  const callToolFn = await getCallToolFn();
   const result = await runSubAgent({
     roleName: agentName,
     taskDescription,
     context,
     taskId,
     extras,
-    callToolFn: callTool,
+    callToolFn,
   });
 
   // If a taskId was provided, update the task with the result
